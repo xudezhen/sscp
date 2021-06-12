@@ -1,0 +1,67 @@
+#!/bin/bash
+#功能：发送文件,如果给定参数是目录则先打包然后再发送
+
+Usage="++++Usage: $0 server_ip file_path"
+
+#test ip is or not valid
+ValidIp()
+{
+	local ip=$1
+	echo $ip |grep "^[0-9]\{1,3\}\.\([0-9]\{1,3\}\.\)\{2\}[0-9]\{1,3\}$" >/dev/null
+	if [ $? -ne 0 ] ;then return 1;fi
+	
+	a=`echo $ip | cut -d "." -f 1`
+	b=`echo $ip | cut -d "." -f 2`
+	c=`echo $ip | cut -d "." -f 3`
+	d=`echo $ip | cut -d "." -f 4`
+	
+	for num in $a $b $c $d
+	do
+		if [ "$num" -gt 255 ] || [ "$num" -lt 0 ];then return 1;fi
+	done
+	
+	return 0
+}
+
+#test para count
+if [ "$#" -lt 2 ] ;then 
+	echo "input error!"
+	echo $Usage
+	exit
+fi
+
+#test ip valid
+server_ip=$1
+if [ ${#1} -le 3 ];then
+	localip=`ifconfig eth0 |grep "inet " |cut -d ':' -f2 |cut -d ' ' -f1`
+	server_ip=${localip%.*}.$1
+fi
+ValidIp $server_ip
+if [ $? -ne 0 ];then
+	echo "error ip!"
+	exit
+fi
+
+#test path
+if [ ! -e "$2" ];then
+	echo "error path!"
+	exit
+fi
+
+# now send file 
+if [ -f "$2" ];then
+	sscp $server_ip $2
+	exit
+fi
+
+#send dir file
+if [ -d "$2" ];then
+	cd $2
+	pwd=`pwd`
+	tarfile=${pwd##*/}.tar.gz
+	tar -zcvf ../$tarfile *
+	cd ..
+	test -f $tarfile && sscp $server_ip $tarfile
+	test -f $tarfile && rm -f $tarfile
+	exit
+fi

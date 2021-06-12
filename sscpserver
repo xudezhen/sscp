@@ -1,0 +1,47 @@
+#!/bin/sh
+
+    SERVICE="sscp start_server"
+    PROC_NAME="FileTransServer"
+
+    start(){
+	echo "server start**"
+	pgrep $PROC_NAME > /dev/null
+	if [ $? -ne 0 ]
+	then            
+        	nohup $SERVICE > /dev/null 2>&1 & 		
+		echo "$PROC_NAME start success,running"
+        else
+		echo "$PROC_NAME has running"
+        fi
+    }
+
+    stop(){
+	echo "server stop***"        
+	pkill $PROC_NAME
+	status
+    }
+
+    restart(){
+        stop&&start
+    }
+
+    status(){
+        pgrep $PROC_NAME > /dev/null
+        if [ $? -eq 0 ]
+        then
+            echo "$PROC_NAME is running"
+        else
+            echo "$PROC_NAME isnot running"
+        fi
+    }
+
+    case $1 in    
+        start)     start ;;  
+        stop)      stop ;;  
+        restart)   restart ;;
+        status)    status ;; 
+        *)         echo "Usage: $0 {start|stop|restart|status}" ;;     
+    esac  
+ 
+    exit 0  
+
