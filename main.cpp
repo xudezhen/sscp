@@ -146,9 +146,9 @@ void doClient(int argc,char *argv[])
     signal(SIGPIPE,SIG_IGN);
     struct stat file_stat;
     stat(argv[2],&file_stat);
-    if(argc == 3 && !S_ISREG(file_stat.st_mode))
+    if((argc == 3 && !S_ISREG(file_stat.st_mode)) || (argc == 4 && strcmp(argv[3],"-r") != 0))
     {
-        printf("the input args is not file! \r\n");
+        printf("the input args is not file! or format error!\r\n");
         return;
     }
     else
